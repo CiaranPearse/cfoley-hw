@@ -4,17 +4,13 @@
       v-if='loading'
       text-center
       wrap
+      id='loading'
     >
       <v-row>
         <v-col
           text-center
         >
-        <flower-spinner
-          class="text-center"
-          :animation-duration="2500"
-          :size="70"
-          color="#ff1d5e"
-        />
+        <h3>Loading ...</h3>
         </v-col>
       </v-row>
     </v-layout>
@@ -22,8 +18,9 @@
       v-if='error'
       text-center
       wrap
+      id='error'
     >
-      <v-alert type="error">
+      <v-alert type='error' name='error'>
         I'm an error alert. with loads of error text
       </v-alert>
     </v-layout>
@@ -31,7 +28,7 @@
       v-if='!loading & !error'
       text-center
       wrap
-      id='propertyList'
+      id='property-list'
     >
       <h3>{{properties.properties.length}} properties in {{properties.location.city.name}}, {{properties.location.city.country}}</h3>
       <v-row>
@@ -40,7 +37,7 @@
           :key="property.id"
           :cols="4"
         >
-          <v-card>
+          <v-card class='list-card'>
             <v-img
               :src='"//"+property.image'
               class="white--text align-end"
@@ -88,63 +85,33 @@
 <script>
 import axios from 'axios'
 import _ from 'lodash'
-import { FlowerSpinner } from 'epic-spinners'
 export default {
-  name: 'HelloWorld',
-  components: {
-    FlowerSpinner
-  },
+  name: 'PropertyList',
   data: () => ({
     loading: true,
     error: false,
     location: '',
-    properties: null
+    properties: []
   }),
   mounted () {
-    axios
-      .get('https://gist.githubusercontent.com/ruimendesM/bf8d095f2e92da94938810b8a8187c21/raw/70b112f88e803bf0f101f2c823a186f3d076d9e6/properties.json')
-      .then(response => (
-        this.properties = response.data
-      ))
-      .catch(error => {
-        console.log(error)
-        this.error = true
-      })
-      .finally(this.loading = false)
+    // just a little timout here to show loading is working
+    setTimeout(this.fetchData, 2000)
+  },
+  methods: {
+    fetchData () {
+      axios
+        .get('https://gist.githubusercontent.com/ruimendesM/bf8d095f2e92da94938810b8a8187c21/raw/70b112f88e803bf0f101f2c823a186f3d076d9e6/properties.json')
+        .then(response => (
+          this.properties = response.data
+        ))
+        .catch(error => {
+          console.log(error)
+          this.error = true
+        })
+        .finally(this.loading = false)
+    }
   },
   computed: {
-    // **** Note **** below will return full list of all data ordered without checking existance, calculating
-    // orderedProperties: function () {
-    //   return _.orderBy(this.properties.properties, 'isFeatured', ['desc'])
-    // },
-    // **** Note **** Decided to sanitize here rather than do calculations in Mustaches.
-    // reacct wanted to use for/in rather than the old style loop but
-    // cleanedProperties: function () {
-    //   let allProperties = []
-    //   let propertyList = this.properties.properties
-    //   let price
-    //   for (var i = 0; i < propertyList.length; i++) {
-    //     let singleProperty = []
-    //     singleProperty.id = propertyList[i].id
-    //     singleProperty.name = propertyList[i].name
-    //     singleProperty.isFeatured = propertyList[i].isFeatured
-    //     if (propertyList[i].images) {
-    //       singleProperty.image = '//' + propertyList[i].images[0].prefix + propertyList[i].images[0].suffix
-    //     } else {
-    //       singleProperty.image = 'https://via.placeholder.com/370x200.png?text=No+Image+Currently'
-    //     }
-    //     if (propertyList[i].overallRating) {
-    //       singleProperty.rating = propertyList[i].overallRating.overall
-    //     } else {
-    //       singleProperty.rating = 'Not yet rated'
-    //     }
-    //     singleProperty.overview = propertyList[i].overview
-    //     price = parseInt(propertyList[i].lowestPricePerNight.value) / 7.55
-    //     singleProperty.lowPrice = Math.round(price * 100) / 100
-    //     allProperties.push(singleProperty)
-    //   }
-    //   return _.orderBy(allProperties, 'isFeatured', ['desc'])
-    // },
     cleanList: function () {
       // Only want to pass what I actually want to use
       let mappedProperties = _.map(this.properties.properties, i => _.pick(i, 'name', 'id', 'isFeatured', 'images', 'overallRating', 'overview', 'lowestPricePerNight'))
